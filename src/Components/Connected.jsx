@@ -1,63 +1,79 @@
-import React from "react";
+import React, { useEffect, useState } from 'react';
 
 const Connected = (props) => {
-  const votationEndDate = props.votationEndDate;
-  const dateOptions = { year: "numeric", month: "long", day: "numeric" };
-  const timeOptions = { hour: "2-digit", minute: "2-digit" };
+  const [remainingTime, setRemainingTime] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = props.votationEndDate.getTime() - now;
+
+      if (distance <= 0) {
+        clearInterval(interval);
+        setRemainingTime('Votación finalizada');
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      setRemainingTime(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [props.votationEndDate]);
 
   return (
-    props.votationEndDate && (
-      <div className="connected-container">
-        <h1 className="connected-header">Estás conectado a Metamask</h1>
-        <button className="login-button" onClick={props.handleLogout}>
-          Logout
-        </button>
-        <p className="connected-account">Metamask Address: {props.account}</p>
-        {props.votationEndDate && (
-          <p className="connected-account">
-            La votación termina el {`${votationEndDate.toLocaleDateString(
-              "es-ES",
-              dateOptions
-            )} ${votationEndDate.toLocaleTimeString("es-ES", timeOptions)}`}
-          </p>
-        )}
-        {props.showButton ? (
-          <p className="connected-account">You have already voted</p>
-        ) : (
-          <div>
-            <input
-              type="number"
-              placeholder="Enter Candidate Index"
-              value={props.number}
-              onChange={props.handleNumberChange}
-            ></input>
-            <br />
-            <button className="login-button" onClick={props.voteFunction}>
-              Vote
-            </button>
-          </div>
-        )}
+    <div className='connected-container'>
+      <p>Metamask Address: {props.account}</p>
 
-        <table id="myTable" className="candidates-table">
-          <thead>
-            <tr>
-              <th>Index</th>
-              <th>Candidate name</th>
-              <th>Candidate votes</th>
+      <h2 className='connected-header'>Votación</h2>
+
+      <p className='connected-account'>
+        {remainingTime === 'Votacion finalizada'
+          ? remainingTime
+          : `Falta: ${remainingTime}`}
+      </p>
+      {props.hasVoted ?? (
+        <p className='connected-account'>You have already voted</p>
+      )}
+      <p>
+        Elige un candidato y pulsa en el botón "Vote" para emitir tu voto. Solo
+        puedes votar una vez.
+      </p>
+
+      <table id='myTable' className='candidates-table'>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Candidate</th>
+            <th>Votes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {props.candidates.map((candidate, index) => (
+            <tr key={index}>
+              <button
+                disabled={props.hasVoted}
+                onClick={() => props.vote(index)}
+              >
+                Vote
+              </button>
+              <td>{candidate.name}</td>
+              <td>{candidate.voteCount.toString()}</td>
             </tr>
-          </thead>
-          <tbody>
-            {props.candidates.map((candidate, index) => (
-              <tr key={index}>
-                <td>{candidate.index}</td>
-                <td>{candidate.name}</td>
-                <td>{candidate.voteCount}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )
+          ))}
+        </tbody>
+      </table>
+      <br></br>
+      <button className='login-button' onClick={props.handleLogout}>
+        Logout
+      </button>
+    </div>
   );
 };
 
