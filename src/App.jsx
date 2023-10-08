@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { contractAbi, contractAddress } from './Constant/constant';
 import Connected from './Components/Connected';
-import './App.css';
+import { LiaVoteYeaSolid } from 'react-icons/lia';
+import { FaEthereum } from 'react-icons/fa';
 
 function App() {
   const [account, setAccount] = useState('');
@@ -11,9 +12,12 @@ function App() {
   const [number, setNumber] = useState('');
   const [canVote, setCanVote] = useState(true);
   const [contract, setContract] = useState(null);
+  const [etherscanURL, setEtherscanURL] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const fetchContractData = useCallback(async () => {
     try {
+      setLoading(true);
       const votationEndDate = await contract.electionEndTime();
       // votationEndDate is BigNumber {_hex: '0x651b1408', _isBigNumber: true}
       const votationTimestamp = parseInt(votationEndDate._hex, 16);
@@ -24,7 +28,11 @@ function App() {
       console.log('candidates', candidates);
 
       const hasVoted = await contract.voters(account);
+      setEtherscanURL(
+        `https://sepolia.etherscan.io/address/${contractAddress}`
+      );
       setCanVote(hasVoted);
+      setLoading(false);
     } catch {}
   }, [contract, account]);
 
@@ -32,6 +40,7 @@ function App() {
     const connectToMetaMask = async () => {
       if (typeof window.ethereum !== 'undefined') {
         try {
+          setLoading(true);
           const accounts = await window.ethereum.request({
             method: 'eth_requestAccounts',
           });
@@ -95,9 +104,38 @@ function App() {
   };
 
   return (
-    <div className='App'>
+    <main>
+      <header className='py-3 px-10 flex items-center fixed top-0 w-full justify-between z-40 text-white'>
+        <div className='flex flex-row gap-4 items-center'>
+          <div className='flex flex-row items-center'>
+            <LiaVoteYeaSolid className='text-5xl' />
+          </div>
+
+          <div className='flex flex-row items-center'>
+            <a
+              href={etherscanURL}
+              className='text-2xl flex flex-row items-center gap-2 btn-accent btn-md rounded-btn'
+            >
+              Contract
+              <FaEthereum className='text-2xl' />
+            </a>
+          </div>
+        </div>
+        <div></div>
+        <div className='flex flex-row gap-4 items-center'>
+          <p>
+            Your account:{' '}
+            <span className='font-thin text-sm italic opacity-50 '>
+              {account}
+            </span>
+          </p>
+          <button className='btn btn-accent btn-md'>Logout</button>
+        </div>
+      </header>
+
       <Connected
         account={account}
+        etherscanURL={etherscanURL}
         candidates={candidates}
         votationEndDate={votationEndDate}
         number={number}
@@ -105,8 +143,9 @@ function App() {
         vote={vote}
         handleLogout={handleLogout}
         hasVoted={canVote}
+        loading={loading}
       />
-    </div>
+    </main>
   );
 }
 
