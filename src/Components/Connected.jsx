@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import vote from '../img/vote.svg';
-import { Link } from 'lucide-react';
 
 const Connected = (props) => {
   const [remainingTime, setRemainingTime] = useState('');
@@ -21,7 +20,8 @@ const Connected = (props) => {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const distance = props.votationEndDate.getTime() - now;
+      const distance =
+        props?.votationEndDate && props?.votationEndDate?.getTime() - now;
 
       if (distance <= 0) {
         clearInterval(interval);
@@ -80,7 +80,9 @@ const Connected = (props) => {
         </div>
 
         <div className='flex flex-row justify-center items-center gap-4'>
-          {props.hasVoted && <p className=''>You have already voted</p>}
+          {props.hasVoted && (
+            <p className='font-bold'>You have already voted</p>
+          )}
         </div>
         <div className='flex flex-row items-center justify-center'>
           <div className='divider w-1/2 items-center align-middle'></div>
@@ -105,6 +107,7 @@ const Connected = (props) => {
                           type='checkbox'
                           class='checkbox border-accent'
                           checked={selectedCandidateIndex === index}
+                          disabled={props.hasVoted}
                           onChange={() => handleCheckboxChange(index)}
                         />
                       </label>
@@ -121,7 +124,7 @@ const Connected = (props) => {
         <div className='flex flex-row items-center justify-center'>
           <button
             className='btn btn-accent btn-lg shadow-md'
-            onClick={handleVote}
+            onClick={() => handleVote(selectedCandidateIndex)}
             disabled={props.hasVoted || selectedCandidateIndex === -1}
           >
             Vote
