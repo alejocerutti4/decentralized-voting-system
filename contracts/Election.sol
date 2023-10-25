@@ -5,6 +5,7 @@ contract Election {
     address public owner;
     uint256 public electionStartTime;
     uint256 public electionEndTime;
+    bool public electionStarted; 
     
     struct Candidate {
         string name;
@@ -17,11 +18,9 @@ contract Election {
     event CandidateAdded(string name);
     event Voted(address voter, string candidateName);
 
-    constructor(uint256 _durationMinutes) {
+    constructor() {
         owner = msg.sender;
-        uint256 currentTime = block.timestamp;
-        electionStartTime = currentTime;
-        electionEndTime = currentTime + (_durationMinutes * 1 minutes);
+        electionStarted = false;
     }
 
     modifier onlyOwner() {
@@ -30,11 +29,23 @@ contract Election {
     }
 
     modifier onlyDuringElection() {
+        require(electionStarted, "Election has not started yet");
         require(block.timestamp >= electionStartTime && block.timestamp <= electionEndTime, "Voting is only allowed during the election period");
         _;
     }
 
-    function addCandidate(string memory name) public onlyOwner onlyDuringElection {
+    modifier beforeElectionStarted() {
+        require(!electionStarted, "Election has already started");
+        _;
+    }
+
+    function startElection(uint256 durationMinutes) public onlyOwner beforeElectionStarted {
+        electionStarted = true;
+        electionStartTime = block.timestamp;
+        electionEndTime = electionStartTime + (durationMinutes * 1 minutes);
+    }
+
+    function addCandidate(string memory name) public onlyOwner beforeElectionStarted {
         candidates.push(Candidate(name, 0));
         emit CandidateAdded(name);
     }
@@ -62,12 +73,10 @@ contract Election {
         return candidates;
     }
 
-    // Function to retrieve the election start time
     function getElectionStartTime() public view returns (uint256) {
         return electionStartTime;
     }
 
-    // Function to retrieve the election end time
     function getElectionEndTime() public view returns (uint256) {
         return electionEndTime;
     }
