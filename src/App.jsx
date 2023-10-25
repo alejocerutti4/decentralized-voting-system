@@ -13,6 +13,7 @@ function App() {
   const [canVote, setCanVote] = useState(true);
   const [contract, setContract] = useState(null);
   const [etherscanURL, setEtherscanURL] = useState('');
+  const [hasElectionStarted, setHasElectionStarted] = useState(false)
   const [loading, setLoading] = useState(true);
 
   const fetchContractData = useCallback(async () => {
@@ -25,8 +26,9 @@ function App() {
       setVotationEndDate(now);
       const getCandidates = await contract.getAllCandidates();
       setCandidates(getCandidates);
-      console.log('candidates', candidates);
-
+      const electionStarted = await contract.electionStarted();  
+      setHasElectionStarted(electionStarted);
+      console.log("electionStarted", electionStarted);
       const hasVoted = await contract.voters(account);
       setEtherscanURL(
         `https://sepolia.etherscan.io/address/${contractAddress}`
@@ -129,7 +131,7 @@ function App() {
               {account}
             </span>
           </p>
-          <button className='btn btn-accent btn-md'>Logout</button>
+          <button className='btn btn-accent btn-md' onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
@@ -144,6 +146,7 @@ function App() {
         handleLogout={handleLogout}
         hasVoted={canVote}
         loading={loading}
+        electionStarted={hasElectionStarted}
       />
     </main>
   );
