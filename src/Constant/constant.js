@@ -1,5 +1,4 @@
-const contractAddress = '0xe78376A81c39417A6Db6F9CcA4909d372fACe7A0';
-
+const contractAddress = "0x017755Bff4338413BE3286c5b8Dc32281e0B595F";
 const contractAbi = [
 	{
 		"inputs": [],

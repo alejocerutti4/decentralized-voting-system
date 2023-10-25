@@ -28,7 +28,6 @@ function App() {
       setCandidates(getCandidates);
       const electionStarted = await contract.electionStarted();  
       setHasElectionStarted(electionStarted);
-      console.log("electionStarted", electionStarted);
       const hasVoted = await contract.voters(account);
       setEtherscanURL(
         `https://sepolia.etherscan.io/address/${contractAddress}`
@@ -65,7 +64,7 @@ function App() {
         console.error('Metamask is not detected in the browser');
       }
     };
-    connectToMetaMask();
+    connectToMetaMask();    
   }, []);
 
   useEffect(() => {
